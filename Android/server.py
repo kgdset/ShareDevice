@@ -1,18 +1,23 @@
-import  socketserver
+import socket
+host=''
+port=51234
+s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+s.bind((host,port))
+s.listen(1)
 
-class Myserver(socketserver.BaseRequestHandler):
+y=b"""HTTP/1.0 200 OK
 
-    def handle(self):
 
-        conn = self.request
-        conn.sendall(bytes("你好，我是机器人",encoding="utf-8"))
-        while True:
-            ret_bytes = conn.recv(1024)
-            ret_str = str(ret_bytes,encoding="utf-8")
-            if ret_str == "q":
-                break
-            conn.sendall(bytes(ret_str+"你好我好大家好",encoding="utf-8"))
+hello world
 
-if __name__ == "__main__":
-    server = socketserver.ThreadingTCPServer(("127.0.0.1",8080),Myserver)
-    server.serve_forever()
+
+://www.baidu.com">baidu
+"""
+while 1:
+  clientsock,clientaddr = s.accept()
+  #process the connection
+  print ("Got connection from", clientsock.getpeername())
+  data = clientsock.recv(4096)
+  n=clientsock.send(y)
+  clientsock.close()

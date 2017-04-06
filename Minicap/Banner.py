@@ -1,21 +1,21 @@
 
 class _Banner():
     #版本信息
-    Version=''
+    Version=0
     #banner长度
-    Length=''
+    Length=0
     #进程ID
-    Pid=''
+    Pid=0
     #设备的真实宽度
-    RealWidth =''
+    RealWidth =0
     #设备的真实高度
-    RealHeight=''
+    RealHeight=0
     #设备的虚拟宽度
-    VirtualWidth=''
+    VirtualWidth=0
     #设备的虚拟高度
-    VirtualHeight=''
+    VirtualHeight=0
     #设备方向
-    Orientation=''
+    Orientation=0
     #设备信息获取策略
     Quirks=''
     def __init__(self):
