@@ -1,7 +1,8 @@
 from Minicap import Banner
 import socket
 import sys
-
+import matplotlib.pyplot as plt
+import numpy as np
 class _MinicapStream():
     host = ''
     port = 51234

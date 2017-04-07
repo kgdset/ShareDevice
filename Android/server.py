@@ -1,23 +1,47 @@
-import socket
-host=''
-port=51234
-s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-s.bind((host,port))
-s.listen(1)
-
-y=b"""HTTP/1.0 200 OK
-
-
-hello world
+# -*- encoding:utf-8 -*-
+# 2014-12-18
+# author: orangleliu
+import time
+import tornado.web
+import tornado.websocket
+import tornado.httpserver
+import tornado.ioloop
 
 
-://www.baidu.com">baidu
-"""
-while 1:
-  clientsock,clientaddr = s.accept()
-  #process the connection
-  print ("Got connection from", clientsock.getpeername())
-  data = clientsock.recv(4096)
-  n=clientsock.send(y)
-  clientsock.close()
+class IndexPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('index.html')
+
+
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    def check_origin(self, origin):
+        return True
+
+    def open(self):
+        pass
+
+    def on_message(self, message):
+        while True:
+            time.sleep(1)
+            self.write_message(u"Your message was: " + message)
+
+    def on_close(self):
+        pass
+
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        handlers = [
+            (r'/', IndexPageHandler),
+            (r'/ws', WebSocketHandler)
+        ]
+
+        settings = {"template_path": "."}
+        tornado.web.Application.__init__(self, handlers, **settings)
+
+
+if __name__ == '__main__':
+    ws_app = Application()
+    server = tornado.httpserver.HTTPServer(ws_app)
+    server.listen(8080)
+    tornado.ioloop.IOLoop.instance().start()  
