@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Tornado Websocket</title>
+</head>
+<div class="row">
+
+    <div class="col-md-6 text-center">
+        <canvas id="phoneCanvas" width="@ViewBag.width" height="@ViewBag.height"></canvas>
+
+        <div class="btn-group phoneKeyBar">
+            <button type="button" class="btn btn-primary android-menu" title="menu"><i class="glyphicon glyphicon-th-list"></i></button>
+            <button type="button" class="btn btn-primary android-home" title="home"><i class="glyphicon glyphicon-home"></i></button>
+            <button type="button" class="btn btn-primary android-back" title="back"><i class="glyphicon glyphicon-chevron-left"></i></button>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h2>操作记录</h2>
+        <div id="output" style="max-height: 600px; overflow-y: scroll;"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    var phoneCanvas = document.getElementById("phoneCanvas");
+    var context = phoneCanvas.getContext("2d");
+    var image = new Image();
+    var canvasWidth = phoneCanvas.width;
+    var canvasHeight = phoneCanvas.height;
+    var output = document.getElementById("output");
+            image.onload = function () {
+                context.clearRect(0, 0, canvasWidth, canvasHeight);
+                context.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+                window.URL.revokeObjectURL(image.src)
+            }
+    image.src = "data:image/gif;base64,R0lGODlhAQAcALMAAMXh96HR97XZ98Hf98Xg97DX97nb98Lf97vc98Tg973d96rU97ba97%2Fe96XS9wAAACH5BAAAAAAALAAAAAABABwAAAQVMLhVBDNItXESAURyDI2CGIxQLE4EADs%3D";
+
+
+    var wsUri="ws://localhost:8080/ws"
+    function startWebSocket() {
+                websocket = new WebSocket(wsUri);
+                websocket.onopen = function (evt) {
+                    onOpen(evt)
+                };
+                websocket.onclose = function (evt) {
+                    onClose(evt)
+                };
+                websocket.onmessage = function (evt) {
+                    onMessage(evt)
+                };
+                websocket.onerror = function (evt) {
+                    onError(evt)
+                };
+            }
+function onOpen(evt) {
+                doSend("control");
+                writeToScreen("websocekt链接中,请耐心等待...");
+
+                setTimeout(function () {
+                    $("#loading").fadeOut(300);
+                },2000);
+            }
+
+            function onClose(evt) {
+                writeToScreen('<span style="color: red;">链接关闭!</span> ');
+            }
+
+            function onMessage(evt) {
+
+                if (typeof (evt.data) == "string") {
+                    writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
+
+                } else {
+                    image.src = URL.createObjectURL(evt.data);
+                }
+
+            }
+
+            function onError(evt) {
+                $("#loading").fadeOut(300);
+                writeToScreen('<span style="color: red;">WebSocek 错误,您可以刷新页面重新尝试 或 将相关错误信息发送给管理人员!</span> ');
+
+            }
+            function doSend(message) {
+                websocket.send(message);
+                writeToScreen("SENT: " + message);
+            }
+            function doSendNoWrite(message) {
+                websocket.send(message);
+            }
+
+            function writeToScreen(message) {
+                var pre = document.createElement("p");
+                pre.style.wordWrap = "break-word";
+                pre.innerHTML = message;
+                output.appendChild(pre);
+                output.scrollTop = output.scrollHeight;
+            }
+    function sendMsg(){
+        ws.send(document.getElementById('msg').value);
+    }
+</script>
+<body onload='startWebSocket();'>
+    Message to send:   <input type="text" id="msg" />
+      <input  type="button" onclick="sendMsg();" value="发送" />
+</body>
+</html>

@@ -13,6 +13,7 @@ import platform
 import re
 import time
 
+from subprocess import Popen, PIPE, STDOUT
 
 
 class AdbTools(object):
@@ -70,6 +71,15 @@ class AdbTools(object):
             return
         self.__device_id = "-s %s" % self.__device_id
 
+    def __cmd_execute(self,cmd,log_path=None,type=None):
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True)
+        if log_path!=None:
+            print(log_path)
+            f=open(log_path,'w+')
+            for line in p.stdout:
+                pass
+        else:
+            return p.stdout
     def adb(self, args):
         """
         执行adb命令
@@ -77,8 +87,16 @@ class AdbTools(object):
         :return:
         """
         cmd = "%s %s %s" % (self.__command, self.__device_id, str(args))
+        print(cmd)
         # print(cmd)
-        return os.popen(cmd)
+        result= self.__cmd_execute(cmd).read()
+        result = str(result).replace('b\'', '')
+        result = str(result).replace('\\r\\r\\n', '')
+        result=str(result).replace('\\r\\n','')
+        result = str(result).replace('\'', '')
+        result = str(result).strip()
+        print(result)
+        return result
 
     def shell(self, args):
         """
