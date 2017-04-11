@@ -32,10 +32,8 @@ class _MinicapStream():
         frameBodyLength = 0
         frameBody =b''
         chunk = self.client.recv(self.chunk)
-        print(chunk)
         while len(chunk)!= 0:
             len_buf = len(chunk)
-            #print(chunk)
             cursor=0
             while cursor<len_buf:
                 #读取banner信息

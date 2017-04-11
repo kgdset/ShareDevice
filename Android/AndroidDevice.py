@@ -15,13 +15,12 @@ class _AndroidDevice():
     abi=''
     os.chdir("../")
     lib_path=os.getcwd()+'\\'
-    print(lib_path)
     MINICAP_FILE_PATH='';
     MINICAPSO_FILE_PATH='';
     MINITOUCH_FILE_PATH='';
     MINICAP_DEVICE_PATH = "/data/local/tmp";
     PUSH_COMMAND = "push";
-    GET_SIZE_COMMAND = "shell dumpsys window windows | findstr mScreenRect";
+    GET_SIZE_COMMAND = "shell dumpsys window windows | grep mScreenRect";
     GET_DEVICE_ABI_COMMAND = "shell getprop ro.product.cpu.abi";
     GET_DEVICE_SDK_COMMAND = "shell getprop ro.build.version.sdk";
     minicapport = 1313;
@@ -70,14 +69,9 @@ class _AndroidDevice():
         return adb1.adb(command);
 
     def GetScreenSize(self):
-        result = self.ExecuteAdbCommand(self.GET_SIZE_COMMAND);
-
-        match = re.search ('\d{3,4}\,\d{3,4}',result)
-
-        size = match.group(0);
-        print(size)
-        self.width = int(size.split(',')[0]);
-        self.height = int(size.split(',')[1]);
+        result = adb1.get_screen_normal_size();
+        self.width = int(result[0]);
+        self.height = int(result[1]);
         self.virtualwidth = int(self.width * (self.height / self.virtualscale) / self.height);
         self.virtualheight = int(self.height / self.virtualscale);
 
@@ -102,7 +96,7 @@ class _AndroidDevice():
         self.ExecuteAdbCommand(command);
 
     def StartMinicapServer(self):
-        print('start')
+        print('Start MinicapServer')
         command = str.format("forward tcp:{0} localabstract:minicap", self.minicapport);
         self.ExecuteAdbCommand(command);
         command = str.format("shell LD_LIBRARY_PATH={0} /data/local/tmp/minicap -P {1}x{2}@{3}x{4}/{5}",
@@ -116,6 +110,7 @@ class _AndroidDevice():
         self.ExecuteAdbCommand(command);
 
     def StartMiniTouchServer(self):
+        print('Start MiniTouchServer')
         command = str.format("forward tcp:{0} localabstract:minitouch", self.minitouchport);
         self.ExecuteAdbCommand(command);
         command = str.format("shell {0}/minitouch", self.MINICAP_DEVICE_PATH, self.width, self.height,

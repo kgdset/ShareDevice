@@ -92,6 +92,7 @@ class AdbTools(object):
         result= self.__cmd_execute(cmd).read()
         result = str(result).replace('b\'', '')
         result = str(result).replace('\\r\\r\\n', '')
+        result=str(result).replace('\\r\\n','')
         result = str(result).replace('\'', '')
         result = str(result).strip()
         print(result)
