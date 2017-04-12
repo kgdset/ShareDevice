@@ -3,17 +3,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
+    <title>ShareDevice</title>
 
 
     <environment names="Staging,Production,Development">
-        <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="css/site.css" asp-append-version="true" />
-        <link rel="stylesheet" href="css/loading.css" />
+        <link rel="stylesheet" href="static/lib/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="static/css/site.css" asp-append-version="true" />
+        <link rel="stylesheet" href="static/css/loading.css" />
     </environment>
 
 </head>
-<body onload='startWebSocket();'>
+<body>
     <div id="loading" style="display:none;">
         <div id="loading-center">
             <div id="loading-center-absolute">
@@ -65,7 +65,7 @@
             document.onselectstart = function () { return false; };
             document.onselect = function () { return false; };
 
-            var wsUri = "ws://localhost:8080/ws";
+            var wsUri = "ws://192.168.1.102:8080/ws";
 
 
 
@@ -107,12 +107,10 @@
             }
 
             function onOpen(evt) {
-                alert(evt.data)
+                //alert(evt.data)
                 doSend("control");
                 writeToScreen("websocekt链接中,请耐心等待...");
-                setTimeout(function () {
-                    $("#loading").fadeOut(300);
-                },2000);
+
 
             }
 
@@ -124,6 +122,12 @@
 
                 if (typeof (evt.data) == "string") {
                     writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
+                    var screen_size=evt.data.replace(/(\[)|(\])/g,"");
+                    screen_size=screen_size.split(',')
+                    phoneCanvas.width=screen_size[0]
+                    phoneCanvas.height=screen_size[1]
+                    canvasWidth = phoneCanvas.width;
+                    canvasHeight = phoneCanvas.height;
 
                 } else {
 
@@ -226,14 +230,14 @@
     </div>
 
     <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="static/lib/jquery/dist/jquery.js"></script>
+        <script src="static/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="static/js/site.js" asp-append-version="true"></script>
     </environment>
     <environment names="Staging,Production">
-        <script src="~/lib/jquery/dist/jquery.min.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="static/lib/jquery/dist/jquery.min.js"></script>
+        <script src="static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="static/js/site.min.js" asp-append-version="true"></script>
     </environment>
 
 

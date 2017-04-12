@@ -30,9 +30,11 @@ class _MiniTouchStream():
     def ParseBanner(self):
         chunk =self.socket.recv(self.chunk);
         result=str(chunk)
+        print(result)
         result=result.replace('b','')
         result=result.replace('\\n',' ')
         result=result.split(' ')
+
         #读取banner数据
         self.banner.version = int(result[1]);
         self.banner.maxcontacts = int(result[3]);
