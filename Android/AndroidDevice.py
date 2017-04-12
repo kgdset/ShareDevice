@@ -13,8 +13,9 @@ class _AndroidDevice():
     orientation='';
     sdk='';
     abi=''
-    os.chdir("../")
+    #os.chdir("../")
     lib_path=os.getcwd()+'\\'
+    print(lib_path)
     MINICAP_FILE_PATH='';
     MINICAPSO_FILE_PATH='';
     MINITOUCH_FILE_PATH='';

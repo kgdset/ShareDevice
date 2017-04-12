@@ -11,19 +11,21 @@ from MiniTouch.MiniTouchStream import _MiniTouchStream
 from Minicap.MinicapStream import _MinicapStream
 mini=''
 ad=''
-
+phone=''
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     is_control=False
+    size=[320,480]
+    sizeX=0
+    sizeY=0
     num1 = 0
     def check_origin(self, origin):
         print(origin)
         return True
 
     def open(self):
-        self.write_message('ok')
         self.start_server()
         self.num1 += 1
-        print(self.num1)
+        #print(self.num1)
 
     def on_message(self, message):
         if len(message)>1:
@@ -31,7 +33,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 self.is_control=True
             else:
                 if self.is_control:
-                    print(message)
+                    #print(message)
                     self.TouchEvent(message)
                 else:
                     pass
@@ -55,7 +57,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         pass
 
+    def create_size(self):
+        self.sizeX=(phone.device.width/phone.device.virtualscale)/self.size[0]
+        self.sizeY = (phone.device.height / phone.device.virtualscale) / self.size[1]
     def TouchEvent(self,buffer):
+        self.create_size()
         str = buffer;
         strArry = str.split(':');
 
@@ -65,14 +71,14 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         xy=strArry[1]
         if type == '3':
             pnt = xy.split(',');
-            X = int(float(pnt[0]))
-            Y = int(float(pnt[1]))
+            X = int(float(pnt[0]))*self.sizeX
+            Y = int(float(pnt[1]))*self.sizeY
             ad.TouchMove(X, Y);
 
         elif type == '1':
             pnt = xy.split(',');
-            X = int(float(pnt[0]))
-            Y = int(float(pnt[1]))
+            X = int(float(pnt[0]))*self.sizeX
+            Y = int(float(pnt[1]))*self.sizeY
             ad.TouchDown(X, Y);
 
         elif type == "2":
@@ -105,20 +111,20 @@ class PhoneConfig():
         minitouchtask.start();
         time.sleep(1);
 
-if __name__ == '__main__':
-    phone = PhoneConfig()
-    phone.setConfig()
-    mini = _MinicapStream()
-    ad = _MiniTouchStream(phone.device)
-    t1 = threading.Thread(target=mini.ReadImageStream, name='thread1', args=())
-    t1.start()
-    time.sleep(1)
-    t2 = threading.Thread(target=ad.ParseBanner, name='thread1', args=())
-    t2.start()
-    time.sleep(5)
-    ws_app = Application()
-    server = tornado.httpserver.HTTPServer(ws_app)
-    server.listen(8080)
-    tornado.ioloop.IOLoop.instance().start()
+
+phone = PhoneConfig()
+phone.setConfig()
+mini = _MinicapStream()
+ad = _MiniTouchStream(phone.device)
+t1 = threading.Thread(target=mini.ReadImageStream, name='thread1', args=())
+t1.start()
+time.sleep(1)
+t2 = threading.Thread(target=ad.ParseBanner, name='thread1', args=())
+t2.start()
+time.sleep(5)
+ws_app = Application()
+server = tornado.httpserver.HTTPServer(ws_app)
+server.listen(8080)
+tornado.ioloop.IOLoop.instance().start()
 
 
