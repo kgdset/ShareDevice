@@ -13,21 +13,21 @@ from Minicap.MinicapStream import _MinicapStream
 mini=''
 ad=''
 phone=''
-Scale=2
-screen_size=[360,580]
+Scale=3
+out_screen_size=[360,580]
 class IndexPageHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('Main/default.html')
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     is_control=False
-    screen_sizeX=0
-    screen_sizeY=0
+    screen_ratioX=0
+    screen_ratioY=0
     def check_origin(self, origin):
         print(origin)
         return True
 
     def open(self):
-        self.write_message(str(screen_size))
+        self.write_message(str(out_screen_size))
         self.start_server()
         #print(self.num1)
 
@@ -60,13 +60,14 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         pass
+    #跟据输出显示大小和手机屏幕实际大小得出宽和高的比值
+    def get_screen_ratio(self):
+        self.screen_ratioX=(phone.device.width/phone.device.virtualscale)/out_screen_size[0]
+        self.screen_ratioY = (phone.device.height / phone.device.virtualscale) /out_screen_size[1]
 
-    def create_screen_size(self):
-        self.screen_sizeX=(phone.device.width/phone.device.virtualscale)/screen_size[0]
-        self.screen_sizeY = (phone.device.height / phone.device.virtualscale) /screen_size[1]
-
+    #根据接收的参数判断动作后向手机端发送相应的指令
     def TouchEvent(self,buffer):
-        self.create_screen_size()
+        self.get_screen_ratio()
         str = buffer;
         strArry = str.split(':');
 
@@ -76,14 +77,15 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         xy=strArry[1]
         if type == '3':
             pnt = xy.split(',');
-            X = int(float(pnt[0]))*self.screen_sizeX
-            Y = int(float(pnt[1]))*self.screen_sizeY
+            #跟据输出显示大小和手机屏幕实际大小的比值，换算实际手机中的坐标
+            X = int(float(pnt[0]))*self.screen_ratioX
+            Y = int(float(pnt[1]))*self.screen_ratioY
             ad.TouchMove(X, Y);
 
         elif type == '1':
             pnt = xy.split(',');
-            X = int(float(pnt[0]))*self.screen_sizeX
-            Y = int(float(pnt[1]))*self.screen_sizeY
+            X = int(float(pnt[0]))*self.screen_ratioX
+            Y = int(float(pnt[1]))*self.screen_ratioY
             ad.TouchDown(X, Y);
 
         elif type == "2":

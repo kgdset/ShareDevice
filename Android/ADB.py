@@ -116,13 +116,22 @@ class AdbTools(object):
         """
         return self.shell('mkdir %s' % path)
 
+    def adb1(self, args):
+        """
+        执行adb命令
+        :param args:参数
+        :return:
+        """
+        cmd = "%s %s %s" % (self.__command, self.__device_id, str(args))
+        # print(cmd)
+        return os.popen(cmd)
     def get_devices(self):
         """
         获取设备列表
         :return:
         """
-        l = self.adb('devices').readlines()
-        return (i.split()[0] for i in l if 'devices' not in i and len(i) > 5)
+        l = self.adb1('devices')
+        return list((i.split()[0] for i in l if 'devices' not in i and len(i) > 5))
 
     def get_current_application(self):
         """
