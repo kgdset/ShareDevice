@@ -14,6 +14,7 @@ mini=''
 ad=''
 phone=''
 Scale=3
+PORT=8888
 out_screen_size=[360,580]
 class IndexPageHandler(tornado.web.RequestHandler):
     def get(self):
@@ -134,7 +135,7 @@ print('********************** StartServer **********************')
 print('*********************************************************')
 ws_app = Application()
 server = tornado.httpserver.HTTPServer(ws_app)
-server.listen(8080)
+server.listen(PORT)
 tornado.ioloop.IOLoop.instance().start()
 
 

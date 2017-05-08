@@ -9,7 +9,7 @@ class _DeviceMonitor():
     old_devicelist=[]
     def getDeviceList(self):
         while True:
-            time.sleep(3)
+
             self.devicelist= AdbTools().get_devices()
             #print(self.devicelist)
             if len(self.devicelist)>0:
@@ -29,8 +29,11 @@ class _DeviceMonitor():
 
                 else:
                     self.DEVICES_LIST['IsUpdate']=False
+            else:
+                self.DEVICES_LIST.clear()
             self.Is_first = False
-            print(self.DEVICES_LIST)
+            time.sleep(5)
+
 
 
     def DeviceMonitor_start(self):
