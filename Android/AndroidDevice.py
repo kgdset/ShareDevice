@@ -3,7 +3,7 @@ import os
 
 from Android import ADB
 import re
-adb1 = ADB.AdbTools()
+
 class _AndroidDevice():
     width=0;
     height=0;
@@ -26,6 +26,13 @@ class _AndroidDevice():
     GET_DEVICE_SDK_COMMAND = "shell getprop ro.build.version.sdk";
     minicapport = 1313;
     minitouchport = 1111;
+
+    def __init__(self,device_id='', minicapport = 1313,minitouchport = 1111):
+        self.adb1 = ADB.AdbTools(device_id)
+        self.minicapport=minicapport
+        self.minitouchport=minitouchport
+        self.InitDeviceInfo();
+        self.PushFile();
 
     def  Height(self):
         return self.height;
@@ -59,18 +66,16 @@ class _AndroidDevice():
         self.orientation;
 
     def setOrientation(self,value):
-        orientation = value;
+        self.orientation = value;
 
-    def AndroidDevice(self):
-        self.InitDeviceInfo();
-        self.PushFile();
+
 
     def ExecuteAdbCommand(self, command):
 
-        return adb1.adb(command);
+        return self.adb1.adb(command);
 
     def GetScreenSize(self):
-        result = adb1.get_screen_normal_size();
+        result = self.adb1.get_screen_normal_size();
         self.width = int(result[0]);
         self.height = int(result[1]);
         self.virtualwidth = int(self.width * (self.height / self.virtualscale) / self.height);

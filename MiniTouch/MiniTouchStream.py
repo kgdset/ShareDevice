@@ -8,16 +8,18 @@ from MiniTouch import Banner
 class _MiniTouchStream():
     HOST = "127.0.0.1";
     PORT = 1111
-    ADDR = (HOST, PORT)
+
     banner =Banner._Banner();
     device=''
     chunk = 64
 
     #界面的显示比例
-    def __init__(self,device):
+    def __init__(self,device,PORT = 1111):
         self.device = device
+        self.PORT=PORT
+        ADDR = (self.HOST, PORT)
         self.socket =socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(self.ADDR)
+        self.socket.connect(ADDR)
         #self.ParseBanner(self.socket)
 
     def Stop(self):

@@ -23,7 +23,6 @@ while True:
     s.connect((host, port))
     msg1 = str(devicemonitor.DEVICES_LIST)
     s.send(msg1.encode('utf-8'))
-    # 接收小于 1024 字节的数据
     s.close()
 
 

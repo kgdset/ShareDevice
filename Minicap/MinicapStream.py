@@ -11,10 +11,12 @@ class _MinicapStream():
     # 设置侦听端口
     PORT = 1313
     chunk = 4096
-    ADDR = (HOST, PORT)
-    def __init__(self):
+
+    def __init__(self,PORT = 1313):
+        self.PORT = PORT
+        ADDR = (self.HOST, PORT)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect(self.ADDR)
+        self.client.connect(ADDR)
 
     #存放由socket接收的图片字节信息
     def ImageByteQueue(self):
