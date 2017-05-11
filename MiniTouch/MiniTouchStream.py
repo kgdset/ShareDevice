@@ -9,7 +9,7 @@ class _MiniTouchStream():
     HOST = "127.0.0.1";
     PORT = 1111
 
-    banner =Banner._Banner();
+    banner =''
     device=''
     chunk = 64
 
@@ -17,9 +17,11 @@ class _MiniTouchStream():
     def __init__(self,device,PORT = 1111):
         self.device = device
         self.PORT=PORT
+        self.banner=Banner._Banner();
         ADDR = (self.HOST, PORT)
         self.socket =socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(ADDR)
+
         #self.ParseBanner(self.socket)
 
     def Stop(self):
@@ -49,13 +51,14 @@ class _MiniTouchStream():
         self.banner.percenty = self.device.height / self.banner.maxy
 
     #按键
-    def ClickKeycode(self,key):
-        t1 = threading.Thread(target=self.adb, name='thread1', args=(key,))
+    def ClickKeycode(self,key,device_id):
+        t1 = threading.Thread(target=self.adb, name='thread1', args=(key,device_id))
         t1.start()
 
-    def adb(self,cmd):
+    def adb(self,cmd,device_id):
         print('cmd:'+cmd)
-        adb=ADB.AdbTools()
+        print(device_id)
+        adb=ADB.AdbTools(device_id)
         adb.shell('input keyevent ' + str(cmd))
     #用于执行按下操作
     def TouchDown(self,*downpoint):
@@ -73,6 +76,7 @@ class _MiniTouchStream():
     def TouchMove(self,*movepoint):
         #转换为设备的真实坐标
         realpoint = self.PointConvert(movepoint)
+        print(realpoint)
         #通过minitouch命令执行划动;传递的文本'd'为划动命令，0为触摸点索引，XY为要滑动到的坐标值，50为压力值，注意必须以\n结尾，否则无法触发动作
         cmd=str.format("m 0 {0} {1} 50\n", str(realpoint[0]), str(realpoint[1]))
         self.ExecuteTouch(cmd)

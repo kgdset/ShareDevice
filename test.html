@@ -1,0 +1,12 @@
+<html>
+<head>
+<script>
+var ws = new WebSocket('ws://localhost:8080/ws');
+ws.onmessage = function(event) {
+    var table = document.getElementById('message');
+    table.insertRow().insertCell().innerHTML = event.data;
+};
+</script>
+</head>
+<body>
+<table id='message'></table>

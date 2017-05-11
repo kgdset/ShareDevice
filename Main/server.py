@@ -6,7 +6,8 @@ import tornado.web
 import tornado.websocket
 import tornado.httpserver
 import tornado.ioloop
-import tornado.web
+from tornado import escape
+
 from Android.AndroidDevice import _AndroidDevice
 from Main import config
 from Main.DeviceControl import _DeviceControl
@@ -14,49 +15,19 @@ from Minicap.MinicapStream import _MinicapStream
 Scale=config.SCALE
 PORT=config.PORT
 out_screen_size=config.OUT_SCREEN_SIZE
-phone=''
+device_id=None
 phone_port=['1111','2222','3333','4444']
-
+user_list={}
 class IndexPageHandler(tornado.web.RequestHandler):
     def get(self):
-        print(self.request.remote_ip)
-        device_id=self.get_argument('device_id')
-        global phone
-        phone = PhoneConfig(device_id)
-        phone.setConfig()
+        ip=self.request.remote_ip
+        global device_id
+        try:
+            device_id=self.get_argument('device_id')
+        except:
+            device_id = ''
+
         self.render('Main/default.html')
-
-class PhoneConfig():
-    minicap = ''
-    device_control = ''
-    phone_list={}
-    def __init__(self,device_id=''):
-        if device_id not in phone_port:
-            self.phone_list[device_id]=phone_port[len(self.phone_list)]
-        self.capport=int(self.phone_list.get(device_id))
-        self.touchport=self.capport+1
-        self.device=_AndroidDevice(device_id,self.capport,self.touchport)
-
-
-    def setConfig(self):
-        self.device.setOrientation(0)
-        self.device.setScale(Scale)
-        minicaptask =threading.Thread(target=self.device.StartMinicapServer,name='minicaptask',args=());
-        minicaptask.start();
-        time.sleep(1);
-        minitouchtask = threading.Thread(target=self.device.StartMiniTouchServer, name='minitouchtask', args=());
-        minitouchtask.start();
-        time.sleep(5)
-        self.minicap = _MinicapStream(self.capport)
-        self.device_control = _DeviceControl(self.device,self.touchport)
-        t1 = threading.Thread(target=self.minicap.ReadImageStream, name='thread1', args=())
-        t1.start()
-        t2 = threading.Thread(target=self.device_control.minitouch.ParseBanner, name='thread1', args=())
-        t2.start()
-        time.sleep(3)
-        print('*********************************************************')
-        print('********************** StartServer **********************')
-        print('*********************************************************')
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     is_control=False
@@ -67,6 +38,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
         self.write_message(str(out_screen_size))
+        self.phone = PhoneConfig(device_id)
+        self.phone.setConfig()
         self.start_server()
 
     def on_message(self, message):
@@ -75,7 +48,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 self.is_control=True
             else:
                 if self.is_control:
-                    phone.device_control.TouchEvent(message)
+                    self.phone.device_control.TouchEvent(message)
                 else:
                     pass
 
@@ -88,11 +61,12 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         while True:
             time.sleep(1/config.REFRESH_RATE)
             try:
-                if phone.minicap.update:
-                    sends = phone.minicap.bytequeue
-                    phone.minicap.update = False
+                if self.phone.minicap.update:
+                    sends = self.phone.minicap.bytequeue
+                    self.phone.minicap.update = False
                     self.write_message(sends,True)
-            except:
+            except Exception as e:
+                print(e)
                 print('断开一个连接！')
                 print(self.request.remote_ip)
                 return
@@ -110,6 +84,38 @@ class Application(tornado.web.Application):
                     "static_path": os.path.join(os.path.dirname(__file__), "static")}
         tornado.web.Application.__init__(self, handlers, **settings)
 
+class PhoneConfig():
+    minicap = ''
+    device_control = ''
+    phone_list={}
+    def __init__(self,device_id=''):
+        if device_id not in phone_port:
+            self.phone_list[device_id]=phone_port[len(self.phone_list)]
+        self.capport=int(self.phone_list.get(device_id))
+        self.touchport=self.capport+1
+        self.device=_AndroidDevice(device_id,self.capport,self.touchport)
+
+
+    def setConfig(self,ip=0):
+        global user_list
+        self.device.setOrientation(0)
+        self.device.setScale(Scale)
+        minicaptask =threading.Thread(target=self.device.StartMinicapServer,name='minicaptask',args=());
+        minicaptask.start();
+        time.sleep(1);
+        minitouchtask = threading.Thread(target=self.device.StartMiniTouchServer, name='minitouchtask', args=());
+        minitouchtask.start();
+        time.sleep(5)
+        self.minicap = _MinicapStream(self.capport)
+        self.device_control = _DeviceControl(self.device,self.touchport,device_id)
+        t1 = threading.Thread(target=self.minicap.ReadImageStream, name='thread1', args=())
+        t1.start()
+        t2 = threading.Thread(target=self.device_control.minitouch.ParseBanner, name='thread1', args=())
+        t2.start()
+        time.sleep(3)
+        print('*********************************************************')
+        print('********************** StartServer **********************')
+        print('*********************************************************')
 
 
 ws_app = Application()

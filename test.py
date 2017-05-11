@@ -1,35 +1,67 @@
-#!/usr/bin/python3
-# 文件名：server.py
+import os
+import threading
 
-# 导入 socket、sys 模块
-import socket
-import sys
-DEVICES_LIST={}
-def getDeviceListAll():
-    # 创建 socket 对象
-    serversocket = socket.socket(
-        socket.AF_INET, socket.SOCK_STREAM)
-    # 获取本地主机名
-    host = socket.gethostname()
+import time
+import tornado.web
+import tornado.websocket
+import tornado.httpserver
+import tornado.ioloop
+class IndexPageHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('test.html')
 
-    port = 9999
 
-    # 绑定端口
-    serversocket.bind((host, port))
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    is_control = False
+    clients = set()
+    test=9
+    @staticmethod
+    def send_to_all(message):
+        for c in WebSocketHandler.clients:
+            c.write_message(message)
+    def check_origin(self, origin):
+        print(origin)
+        return True
 
-    # 设置最大连接数，超过后排队
-    serversocket.listen(5)
+    def open(self):
+        self.test=self.test+1
+        self.write_message('Welcome to WebSocket')
+        WebSocketHandler.clients.add(self)
+        WebSocketHandler.send_to_all(str(id(self)) + '连接')
+        self.start_server(self)
 
-    while True:
-        # 建立客户端连接
-        clientsocket, addr = serversocket.accept()
-        host=addr[0]
-        print(host)
-        #print("连接地址: %s" % str(addr))
-        msg = clientsocket.recv(4096).decode('utf-8')
-        DEVICES_LIST[host]=eval(msg)
-        print(DEVICES_LIST)
-        # msg = '欢迎访问菜鸟教程！' + "\r\n"
-        clientsocket.send(msg.encode('utf-8'))
-        clientsocket.close()
-getDeviceListAll()
+
+    def start_server(self,obj):
+
+        t3 = threading.Thread(target=self.senddata, name='thread2', args=())
+        t3.start()
+
+    def senddata(self):
+        while True:
+            time.sleep(1)
+            self.write_message(str(self.test))
+
+
+    def on_message(self, message):
+        pass
+
+
+    def on_close(self):
+        WebSocketHandler.clients.remove(self)
+        WebSocketHandler.send_to_all(str(id(self)) + '断开连接')
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        handlers = [
+            (r'/', IndexPageHandler),
+            (r'/ws', WebSocketHandler)
+        ]
+        settings = {"template_path": ".",
+                    "static_path": os.path.join(os.path.dirname(__file__), "static")}
+        tornado.web.Application.__init__(self, handlers, **settings)
+
+if __name__=='__main__':
+    ws_app = Application()
+    server = tornado.httpserver.HTTPServer(ws_app)
+    server.listen(8080)
+    tornado.ioloop.IOLoop.instance().start()
