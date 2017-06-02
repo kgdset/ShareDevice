@@ -1,11 +1,21 @@
 <html>
+<canvas id="phoneCanvas" width="320" height="480"></canvas>
 <head>
 <script>
-var ws = new WebSocket('ws://localhost:8080/ws');
-ws.onmessage = function(event) {
-    var table = document.getElementById('message');
-    table.insertRow().insertCell().innerHTML = event.data;
-};
+    draw0('phoneCanvas');
+function draw0(id) {
+             var canvas = document.getElementById(id);
+             if (canvas == null) {
+                 return false;
+             }
+             var context = canvas.getContext('2d');
+             context.beginPath();
+             context.arc(200, 150, 10, 0, Math.PI * 2, true);
+             //不关闭路径路径会一直保留下去，当然也可以利用这个特点做出意想不到的效果
+             context.closePath();
+             context.fillStyle = 'rgba(0,255,0,0.25)';
+             context.fill();
+         }
 </script>
 </head>
 <body>

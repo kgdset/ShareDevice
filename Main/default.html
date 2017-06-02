@@ -14,7 +14,10 @@
 
 </head>
 <body>
+<div id="showPoint"></div>
+<div id="showVideoMark"></div>
     <div id="loading" style="display:none;">
+
         <div id="loading-center">
             <div id="loading-center-absolute">
                 <div class="object" id="object_one"></div>
@@ -43,6 +46,7 @@
         <div class="row">
 
     <div class="col-md-6 text-center">
+
         <canvas id="phoneCanvas" width="320" height="480"></canvas>
 
         <div class="btn-group phoneKeyBar">
@@ -57,7 +61,17 @@
         <div id="output" style="max-height: 600px; overflow-y: scroll;"></div>
     </div>
 </div>
-<script language="javascript" type="text/javascript">
+          <environment names="Development">
+        <script src="static/lib/jquery/dist/jquery.js"></script>
+        <script src="static/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="static/js/site.js" asp-append-version="true"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="static/lib/jquery/dist/jquery.min.js"></script>
+        <script src="static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="static/js/site.min.js" asp-append-version="true"></script>
+    </environment>
+<script type="text/javascript">
 
 
             document.oncontextmenu = function () { return false; };
@@ -89,7 +103,20 @@
             var output = document.getElementById("output");
 
             var websocket;
+            function showpoint(x,y) {
+                $("#showPoint").show();
+                $("#showPoint").css({"left": x,"top": y});
 
+            }
+            function draw0(x,y) {
+             context.beginPath();
+             context.
+             context.arc(x, y, 10, 0, Math.PI * 2, true);
+             //不关闭路径路径会一直保留下去，当然也可以利用这个特点做出意想不到的效果
+             context.closePath();
+             context.fillStyle = 'rgba(0,255,0,0.25)';
+             context.fill();
+         }
             function startWebSocket() {
                 websocket = new WebSocket(wsUri);
                 websocket.onopen = function (evt) {
@@ -108,7 +135,7 @@
 
             function onOpen(evt) {
                 //alert(evt.data)
-                doSend("control");
+                doSend(0,"control");
                 writeToScreen("websocekt链接中,请耐心等待...");
 
 
@@ -133,6 +160,7 @@
 
                     image.src = URL.createObjectURL(evt.data);
 
+
                 }
 
             }
@@ -143,7 +171,38 @@
 
             }
 
-            function doSend(message) {
+            function doSend(type,e) {
+                //alert(type)
+                var message;
+                if(type==0){
+                    message=e
+                }
+                else if(type==4)
+                {
+                    message="4:"+e
+                }
+                else
+                {
+                var bbox = phoneCanvas.getBoundingClientRect();
+                var x = e.clientX - bbox.left * (phoneCanvas.width/bbox.width);
+                var y = e.clientY - bbox.top * (phoneCanvas.height/bbox.height);
+
+                switch (type) {
+                case 1:
+                    message="1:" + x + "," + y;
+                    break;
+                case 2:
+
+                    message="2:up";
+                    break;
+                case 3:
+
+                    message="1:" + x + "," + y;
+                    break;
+
+
+                }
+                }
                 websocket.send(message);
                 writeToScreen("SENT: " + message);
             }
@@ -158,67 +217,89 @@
                 output.appendChild(pre);
                 output.scrollTop = output.scrollHeight;
             }
+            $(function(){
 
-            var mousedown = false;
-            phoneCanvas.onmousedown = function (e) {
+            var mousemove = 0;
+            $("#showVideoMark").mousedown(function(e){
                 if (e.button == 2) return;
-                var rect = this.getBoundingClientRect();
-                var mouseX = e.clientX - rect.left;//获取鼠标在canvsa中的坐标
-                var mouseY = e.clientY - rect.top;
+                doSend(1,e);
+                mousemove = 1;
 
-                doSend("1:" + mouseX + "," + mouseY);
 
-                mousedown = true;
+            });
+            $("#showVideoMark").mouseup(function(e){
 
-            }
-
-            phoneCanvas.onmouseout = function (e) {
                 if (e.button == 2) return;
+                if (mousemove != 1) return;
+                mousemove = 0;
+                alert('up')
+                doSend(2,e);
 
-                if (mousedown != true) return;
-                mousedown = false;
-                doSend("2:up");
-            }
-
-            phoneCanvas.onmouseup = function (e) {
+            });
+            $("#showVideoMark").mousemove(function(e){
                 if (e.button == 2) return;
-                if (mousedown != true) return;
-                mousedown = false;
-                doSend("2:up");
-            }
-
-            phoneCanvas.onmousemove = function (e) {
-                if (e.button == 2) return;
-                if (mousedown != true) return;
+                if (mousemove != 1) return;
                 var e = window.event || e
+                doSend(3,e);
 
-                var rect = this.getBoundingClientRect();
 
-                var mouseX = e.clientX - rect.left;//获取鼠标在canvsa中的坐标
+            });
+             $("#showVideoMark").mouseout(function(e){
+              if (e.button == 2) return;
+                if (mousemove != 1) return;
+                alert('up')
+                doSend(2,e);
+                mousemove = 0;
 
-                var mouseY = e.clientY - rect.top;
 
-                doSendNoWrite("3:" + mouseX + "," + mouseY);
+            });
+        });
 
-            }
 
+            function movePoint(){
+     $(document).mousemove(function(event){
+        var x = event.pageX;
+        var y = event.pageY;
+        var minX = phoneCanvas.getBoundingClientRect().left + $("body").scrollLeft();
+        var minY = phoneCanvas.getBoundingClientRect().top + $("body").scrollTop();
+        var maxX = minX + phoneCanvas.width;
+        var maxY = minY + phoneCanvas.height;
+        $("#showVideoMark").css({"top": minY,"left": minX});
+        $("#showVideoMark").css({"width": phoneCanvas.width,"height": phoneCanvas.height});
+
+        if((x>minX && x<maxX) && (y>minY && y<maxY)){
+            $("#showVideoMark").mousedown(function(){
+                $("#showPoint").show();
+            });
+            $("#showVideoMark").mouseup(function(){
+                $("#showPoint").hide();
+            });
+            var nx = x - 7;
+            var ny = y - 7;
+            $("#showPoint").css({"left": nx,"top": ny});
+        }else{
+            $("#showPoint").hide();
+        }
+    });
+}
 
            function click_menu() {
-                doSend("4:82");
+                doSend(4,82);
             }
 
             function click_home() {
-                doSend("4:3");
+                doSend(4,3);
             }
 
             function click_back() {
-                doSend("4:4");
+                doSend(4,4);
             }
 
 
 
             //确保服务器已经释放相关资源
             setTimeout(function () {
+                movePoint();
                 startWebSocket();
             }, 500);
 
@@ -229,16 +310,7 @@
         </footer>
     </div>
 
-    <environment names="Development">
-        <script src="static/lib/jquery/dist/jquery.js"></script>
-        <script src="static/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="static/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="static/lib/jquery/dist/jquery.min.js"></script>
-        <script src="static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="static/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+
 
 
 </body>
