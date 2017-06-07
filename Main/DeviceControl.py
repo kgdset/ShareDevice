@@ -27,9 +27,7 @@ class _DeviceControl():
             pnt = xy.split(',');
             #跟据输出显示大小和手机屏幕实际大小的比值，换算实际手机中的坐标
             X = int(float(pnt[0]))*self.screen_ratioX
-            print("X:"+str(X))
             Y = int(float(pnt[1]))*self.screen_ratioY
-            print("Y:"+str(Y))
             self.minitouch.TouchMove(X, Y);
 
         elif type == '1':

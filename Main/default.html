@@ -184,8 +184,8 @@
                 else
                 {
                 var bbox = phoneCanvas.getBoundingClientRect();
-                var x = e.clientX - bbox.left * (phoneCanvas.width/bbox.width);
-                var y = e.clientY - bbox.top * (phoneCanvas.height/bbox.height);
+                var x = e.clientX - bbox.left;
+                var y = e.clientY - bbox.top;
 
                 switch (type) {
                 case 1:
@@ -197,14 +197,17 @@
                     break;
                 case 3:
 
-                    message="1:" + x + "," + y;
+                    message="3:" + x + "," + y;
                     break;
 
 
                 }
                 }
                 websocket.send(message);
+                if(type!=3)
+                {
                 writeToScreen("SENT: " + message);
+                }
             }
             function doSendNoWrite(message) {
                 websocket.send(message);
@@ -232,7 +235,7 @@
                 if (e.button == 2) return;
                 if (mousemove != 1) return;
                 mousemove = 0;
-                alert('up')
+
                 doSend(2,e);
 
             });
@@ -247,7 +250,7 @@
              $("#showVideoMark").mouseout(function(e){
               if (e.button == 2) return;
                 if (mousemove != 1) return;
-                alert('up')
+
                 doSend(2,e);
                 mousemove = 0;
 

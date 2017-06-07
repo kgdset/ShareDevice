@@ -76,7 +76,6 @@ class _MiniTouchStream():
     def TouchMove(self,*movepoint):
         #转换为设备的真实坐标
         realpoint = self.PointConvert(movepoint)
-        print(realpoint)
         #通过minitouch命令执行划动;传递的文本'd'为划动命令，0为触摸点索引，XY为要滑动到的坐标值，50为压力值，注意必须以\n结尾，否则无法触发动作
         cmd=str.format("m 0 {0} {1} 50\n", str(realpoint[0]), str(realpoint[1]))
         self.ExecuteTouch(cmd)
